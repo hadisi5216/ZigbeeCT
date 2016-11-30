@@ -171,11 +171,11 @@ public class CH34xConnection {
         try {
             mLen = uartInterface_ch34.WriteData(hexStringToBytes(message), numBytes / 2);
         } catch (IOException e) {
-            ToastUtil.showToast(mContext, "写入数据错误");
+//            ToastUtil.showToast(mContext, "写入数据错误");
             e.printStackTrace();
         }
         if (mLen != numBytes / 2) {
-            ToastUtil.showToast(mContext, "写入数据错误");
+//            ToastUtil.showToast(mContext, "写入数据错误");
         }
     }
 
