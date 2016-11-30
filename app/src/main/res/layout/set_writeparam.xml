@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="0dp"
+    android:layout_height="match_parent"
+    android:layout_weight="3"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="设置参数：" />
+
+    <RadioGroup
+        android:id="@+id/write_item_rg"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp">
+
+        <RadioButton
+            android:id="@+id/write_panid_rbtn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="PAN ID:" />
+
+        <EditText
+            android:id="@+id/write_panid_et"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:layout_marginTop="5dp"
+            android:background="@drawable/bg_edittext"
+            android:padding="5dp" />
+
+        <RadioButton
+            android:id="@+id/write_channel_rbtn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="频道:" />
+
+        <Spinner
+            android:id="@+id/write_nodechannel_spinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="4dp"
+            android:layout_marginTop="5dp"
+            android:entries="@array/node_channel"
+            android:gravity="center"
+            android:inputType="none"
+            android:padding="5dp" />
+
+        <RadioButton
+            android:id="@+id/write_nodetype_rbtn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="节点类型:" />
+
+        <Spinner
+            android:id="@+id/write_nodetype_spinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="4dp"
+            android:layout_marginTop="5dp"
+            android:entries="@array/node_type"
+            android:gravity="center"
+            android:inputType="none"
+            android:padding="5dp" />
+    </RadioGroup>
+
+    <TextView
+        android:id="@+id/write_tip"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/colorAccent" />
+
+    <Button
+        android:id="@+id/write_param_btn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="写入参数" />
+
+    <Button
+        android:id="@+id/restart_btn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="模块重启 " />
+</LinearLayout>

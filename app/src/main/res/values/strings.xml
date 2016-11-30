@@ -1,0 +1,60 @@
+<resources>
+    <string name="app_name">ZigbeeCT</string>
+    <string-array name="baud_rate">
+        <item>300</item>
+        <item>600</item>
+        <item>1200</item>
+        <item>4800</item>
+        <item>9600</item>
+        <item>19200</item>
+        <item>38400</item>
+        <item>57600</item>
+        <item>115200</item>
+        <item>230400</item>
+        <item>460800</item>
+        <item>921600</item>
+    </string-array>
+    <string-array name="stop_bits">
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+    <string-array name="data_bits">
+        <item>7</item>
+        <item>8</item>
+    </string-array>
+    <string-array name="parity">
+        <item>none</item>
+        <item>odd</item>
+        <item>even</item>
+        <item>mark</item>
+        <item>space</item>
+    </string-array>
+    <string-array name="flow_control">
+        <item>none</item>
+        <item>CTS/RTS</item>
+        <item>DTR/DSR</item>
+        <item>XOFF/XON</item>
+    </string-array>
+    <string-array name="node_type">
+        <item>Router</item>
+        <item>Coordinator</item>
+    </string-array>
+    <string-array name="node_channel">
+        <item>11</item>
+        <item>12</item>
+        <item>13</item>
+        <item>14</item>
+        <item>15</item>
+        <item>16</item>
+        <item>17</item>
+        <item>18</item>
+        <item>19</item>
+        <item>20</item>
+        <item>21</item>
+        <item>22</item>
+        <item>23</item>
+        <item>24</item>
+        <item>25</item>
+        <item>26</item>
+    </string-array>
+</resources>
