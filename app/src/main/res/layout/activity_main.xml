@@ -13,9 +13,12 @@
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
         android:orientation="horizontal">
 
         <LinearLayout
+            android:id="@+id/usb_ll"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="2"
@@ -25,7 +28,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                android:text="通信设置：" />
+                android:text="USB通信：" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -134,7 +137,6 @@
                 android:layout_marginLeft="4dp"
                 android:layout_marginRight="4dp"
                 android:entries="@array/parity"
-
                 android:gravity="center"
                 android:inputType="none"
                 android:padding="5dp" />
@@ -186,6 +188,145 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:text="config" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/sp_ll"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="2"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="串口通信：" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:gravity="center|bottom"
+                android:text="Dev name:"
+                android:textSize="12sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/Gray300" />
+
+            <Spinner
+                android:id="@+id/sp_dev_name_spinner"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="4dp"
+                android:layout_marginRight="4dp"
+                android:entries="@array/dev_name"
+                android:gravity="center"
+                android:inputType="none"
+                android:padding="5dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/Gray300" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:gravity="center|bottom"
+                android:text="Baud rate:"
+                android:textSize="12sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/Gray300" />
+
+            <Spinner
+                android:id="@+id/sp_baud_rate_spinner"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="4dp"
+                android:layout_marginRight="4dp"
+                android:entries="@array/baud_rate"
+                android:gravity="center"
+                android:inputType="none"
+                android:padding="5dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/Gray300" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:gravity="center|bottom"
+                android:text="Stop(bit):"
+                android:textSize="12sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/Gray300" />
+
+            <Spinner
+                android:id="@+id/sp_stop_bits_spinner"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="4dp"
+                android:layout_marginRight="4dp"
+                android:entries="@array/stop_bits"
+                android:gravity="center"
+                android:inputType="none"
+                android:padding="5dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/Gray300" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:gravity="center|bottom"
+                android:text="Data(bit):"
+                android:textSize="12sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/Gray300" />
+
+            <Spinner
+                android:id="@+id/sp_data_bits_spinner"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="4dp"
+                android:layout_marginRight="4dp"
+                android:entries="@array/data_bits"
+                android:gravity="center"
+                android:inputType="none"
+                android:padding="5dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/Gray300" />
+
+            <Button
+                android:id="@+id/sp_connect_bnt"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="连接" />
+
         </LinearLayout>
 
         <include layout="@layout/set_readparam" />

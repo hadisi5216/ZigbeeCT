@@ -4,16 +4,21 @@ import android.content.Context;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.zhrcedu.zigbee.ch34x.CH34xConnection;
+import com.zhrcedu.zigbee.serialport.ISerialPortConnection;
+import com.zhrcedu.zigbee.serialport.SerialPortConnection;
 import com.zhrcedu.zigbee.util.CheckedInput;
 import com.zhrcedu.zigbee.util.Constant;
 import com.zhrcedu.zigbee.util.DecimalTypeUtils;
@@ -66,14 +71,35 @@ public class MainActivity extends AppCompatActivity {
     RadioButton writeNodetypeRbtn;
     @BindView(R.id.write_param_btn)
     Button writeParamBtn;
+    @BindView(R.id.usb_ll)
+    LinearLayout usbLl;
+    @BindView(R.id.sp_dev_name_spinner)
+    Spinner spDevNameSpinner;
+    @BindView(R.id.sp_baud_rate_spinner)
+    Spinner spBaudRateSpinner;
+    @BindView(R.id.sp_stop_bits_spinner)
+    Spinner spStopBitsSpinner;
+    @BindView(R.id.sp_data_bits_spinner)
+    Spinner spDataBitsSpinner;
+    @BindView(R.id.sp_ll)
+    LinearLayout spLl;
+    @BindView(R.id.sp_connect_bnt)
+    Button spConnectBnt;
 
-    /* local variables */
+    /* usb local variables */
     protected int baudRate; /* baud rate */
     protected byte stopBit; /* 1:1stop bits, 2:2 stop bits */
     protected byte dataBit; /* 8:8bit, 7: 7bit */
     protected byte parity; /* 0: none, 1: odd, 2: even, 3: mark, 4: space */
     protected byte flowControl; /* 0:none, 1: flow control(CTS,RTS) */
     protected int portNumber; /* port number */
+
+    /*串口通信参数*/
+    private int fd = -1;
+    private String devName = "/dev/ttyAMA2";
+    private long baud = 9600l;
+    private int databits = 8;
+    private int stopbits = 1;
 
     //消息类型
     private enum MessageFlagEnum {
@@ -85,6 +111,9 @@ public class MainActivity extends AppCompatActivity {
     private String writeNodeType;
 
     private CH34xConnection mCH34xConnection;
+    private boolean isConnect = false;
+    private boolean isUsbConnect = true;
+    private SerialPortConnection mSP;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -108,9 +137,15 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    @OnClick({R.id.open_btn, R.id.config_btn, R.id.read_param_btn, R.id.write_param_btn, R.id.restart_btn})
+    @OnClick({R.id.sp_connect_bnt, R.id.open_btn, R.id.config_btn, R.id.read_param_btn, R.id.write_param_btn, R.id.restart_btn})
     public void onClick(View v) {
         switch (v.getId()) {
+            case R.id.sp_connect_bnt:
+                if (isConnect)
+                    onDisconnectSP();
+                else
+                    onConnectSP();
+                break;
             case R.id.open_btn:
                 mCH34xConnection.openUsbDevice();
                 break;
@@ -125,9 +160,42 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case R.id.restart_btn:
                 clearShow();
-                mCH34xConnection.writeZigbeeMessage(Constant.ZigbeeCommands.RESTART, 16, true);
+                sendMessage(Constant.ZigbeeCommands.RESTART, 16, true);
                 break;
         }
+    }
+
+    private void onConnectSP() {
+        mSP = SerialPortConnection.getInstance();
+        mSP.setMessageListener(new ISerialPortConnection() {
+            @Override
+            public void onStart(String strtResult) {
+                ToastUtil.showToast(MainActivity.this, strtResult);
+                if (strtResult.equals("串口启动成功")) {
+                    spConnectBnt.setText("断开");
+                    isConnect = true;
+                }
+            }
+
+            @Override
+            public void onMessage(String message) {
+                if (message.startsWith("rptaddress")) {
+                    readHardaddTv.setText(message.split("=")[1]);
+                }
+            }
+
+            @Override
+            public void onHexStrMessage(String hexMessage) {
+                recivedMessage(hexMessage);
+            }
+        });
+        mSP.connect(fd, devName, baud, databits, stopbits);
+    }
+
+    private void onDisconnectSP() {
+        mSP.release();
+        spConnectBnt.setText("连接");
+        isConnect = false;
     }
 
     /**
@@ -138,20 +206,20 @@ public class MainActivity extends AppCompatActivity {
             case WRITE_PANID:
                 String checkZigbeePanidResult = CheckedInput.checkZigbeePanid(writePanidEt.getText().toString().trim());
                 if (checkZigbeePanidResult.equals("OK"))
-                    mCH34xConnection.writeZigbeeMessage(Constant.ZigbeeCommands.WRITE_PANID.replace("XXXX", writePanidEt.getText().toString().trim()), 16, true);
+                    sendMessage(Constant.ZigbeeCommands.WRITE_PANID.replace("XXXX", writePanidEt.getText().toString().trim()), 16, true);
                 else
                     ToastUtil.showToast(this, checkZigbeePanidResult);
                 break;
             case WRITE_CHANNEL:
                 byte[] bt1 = new byte[1];
                 bt1[0] = (byte) (Integer.parseInt(writeChannel) & 0xff);
-                mCH34xConnection.writeZigbeeMessage(Constant.ZigbeeCommands.WRITE_CHANNEL.replace("XX", DecimalTypeUtils.bytesToHexString(bt1, bt1.length)), 16, true);
+                sendMessage(Constant.ZigbeeCommands.WRITE_CHANNEL.replace("XX", DecimalTypeUtils.bytesToHexString(bt1, bt1.length)), 16, true);
                 break;
             case WRITE_NODETYPE:
                 if (writeNodeType.equals("Router"))
-                    mCH34xConnection.writeZigbeeMessage(Constant.ZigbeeCommands.WRITE_NODETYPE_ROUTER, 16, true);
+                    sendMessage(Constant.ZigbeeCommands.WRITE_NODETYPE_ROUTER, 16, true);
                 else if (writeNodeType.equals("Coordinator"))
-                    mCH34xConnection.writeZigbeeMessage(Constant.ZigbeeCommands.WRITE_NODETYPE_COORDINATOR, 16, true);
+                    sendMessage(Constant.ZigbeeCommands.WRITE_NODETYPE_COORDINATOR, 16, true);
                 break;
         }
     }
@@ -165,22 +233,26 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
                 try {
-                    mCH34xConnection.writeZigbeeMessage(Constant.ZigbeeCommands.READ_PANID, 16, true);
+                    sendMessage(Constant.ZigbeeCommands.READ_PANID, 16, true);
                     flagEnum = MessageFlagEnum.READ_PANID;
                     Thread.sleep(500);
-                    mCH34xConnection.writeZigbeeMessage(Constant.ZigbeeCommands.READ_CHANNEL, 16, true);
+                    sendMessage(Constant.ZigbeeCommands.READ_CHANNEL, 16, true);
                     flagEnum = MessageFlagEnum.READ_CHANNEL;
                     Thread.sleep(500);
-                    mCH34xConnection.writeZigbeeMessage(Constant.ZigbeeCommands.READ_NODETYPE, 16, true);
+                    sendMessage(Constant.ZigbeeCommands.READ_NODETYPE, 16, true);
                     flagEnum = MessageFlagEnum.READ_NODETYPE;
                     Thread.sleep(500);
-                    mCH34xConnection.writeZigbeeMessage(Constant.ZigbeeCommands.READ_SHORTADD, 16, true);
+                    sendMessage(Constant.ZigbeeCommands.READ_SHORTADD, 16, true);
                     flagEnum = MessageFlagEnum.READ_SHORTADD;
                     Thread.sleep(500);
-                    mCH34xConnection.writeZigbeeMessage(Constant.ZigbeeCommands.READ_MACADD, 16, true);
+                    sendMessage(Constant.ZigbeeCommands.READ_MACADD, 16, true);
                     flagEnum = MessageFlagEnum.READ_MACADD;
                     Thread.sleep(500);
-                    mCH34xConnection.writeMessage(Constant.ZigbeeCommands.READ_HARDADD);
+                    if (isUsbConnect)
+                        mCH34xConnection.writeMessage(Constant.ZigbeeCommands.READ_HARDADD);
+                    else
+                        mSP.write(Constant.ZigbeeCommands.READ_HARDADD, 0);
+
                     //默认消息
                     flagEnum = MessageFlagEnum.DEFAULT;
                 } catch (InterruptedException e) {
@@ -221,59 +293,118 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onBytesToHexStrMessage(String message) {
 //                Log.d("onBytesToHexStrMessage::::::::::::::::", message);
-                switch (flagEnum) {
-                    case READ_PANID:
-                        readPanidTv.setText(message);
-                        break;
-                    case READ_CHANNEL:
-                        if (message.length() != 12)
-                            break;
-                        //最后两位十六进制转换为十进制是channel号
-                        byte[] cha = DecimalTypeUtils.hexStringToBytes(message.substring(message.length() - 2, message.length()));
-                        readChannelTv.setText("" + (cha[0] & 0xff));
-                        break;
-                    case READ_NODETYPE:
-                        //如果是 Coordinator，返回：43 6F 6F 72 64 69如果是 Router，返回：52 6F 75 74 65 72
-                        if (message.equals("436f6f726469"))
-                            readNodetypeTv.setText("Coordinator");
-                        if (message.equals("526f75746572"))
-                            readNodetypeTv.setText("Router");
-                        break;
-                    case READ_SHORTADD:
-                        readShortaddTv.setText(message);
-                        break;
-                    case READ_MACADD:
-                        readMacaddTv.setText(message);
-                        break;
-                    case WRITE_PANID:
-                        if (message.equals("fa161718191a72"))
-                            writeTip.setText("禁止重设置Coordinate的PAN ID为相同的值");
-                        else
-                            writeTip.setText("设置新PAN ID成功，重启生效");
-                        break;
-                    case WRITE_CHANNEL:
-                        if (message.length() != 10)
-                            break;
-                        //最后两位十六进制转换为十进制是channel号
-                        byte[] cha1 = DecimalTypeUtils.hexStringToBytes(message.substring(message.length() - 2, message.length()));
-                        writeTip.setText("设置新频道" + (cha1[0] & 0xff) + "成功，重启生效");
-                        break;
-                    case WRITE_NODETYPE:
-                        if (writeNodeType.equals("Router"))
-                            writeTip.setText("设置为Router成功，重启生效");
-                        else if (writeNodeType.equals("Coordinator"))
-                            writeTip.setText("设置为Coordinator成功，重启生效");
-                        break;
-                    case DEFAULT:
-                        //默认情况
-                        break;
-                }
+                recivedMessage(message);
             }
 
         });
     }
 
+    private void recivedMessage(String message) {
+        switch (flagEnum) {
+            case READ_PANID:
+                readPanidTv.setText(message);
+                break;
+            case READ_CHANNEL:
+                if (message.length() != 12)
+                    break;
+                //最后两位十六进制转换为十进制是channel号
+                byte[] cha = DecimalTypeUtils.hexStringToBytes(message.substring(message.length() - 2, message.length()));
+                readChannelTv.setText("" + (cha[0] & 0xff));
+                break;
+            case READ_NODETYPE:
+                //如果是 Coordinator，返回：43 6F 6F 72 64 69如果是 Router，返回：52 6F 75 74 65 72
+                if (message.equals("436f6f726469"))
+                    readNodetypeTv.setText("Coordinator");
+                if (message.equals("526f75746572"))
+                    readNodetypeTv.setText("Router");
+                break;
+            case READ_SHORTADD:
+                readShortaddTv.setText(message);
+                break;
+            case READ_MACADD:
+                readMacaddTv.setText(message);
+                break;
+            case WRITE_PANID:
+                if (message.equals("fa161718191a72"))
+                    writeTip.setText("禁止重设置Coordinate的PAN ID为相同的值");
+                else
+                    writeTip.setText("设置新PAN ID成功，重启生效");
+                break;
+            case WRITE_CHANNEL:
+                if (message.length() != 10)
+                    break;
+                //最后两位十六进制转换为十进制是channel号
+                byte[] cha1 = DecimalTypeUtils.hexStringToBytes(message.substring(message.length() - 2, message.length()));
+                writeTip.setText("设置新频道" + (cha1[0] & 0xff) + "成功，重启生效");
+                break;
+            case WRITE_NODETYPE:
+                if (writeNodeType.equals("Router"))
+                    writeTip.setText("设置为Router成功，重启生效");
+                else if (writeNodeType.equals("Coordinator"))
+                    writeTip.setText("设置为Coordinator成功，重启生效");
+                break;
+            case DEFAULT:
+                //默认情况
+                break;
+        }
+    }
+
+    public void sendMessage(String message, int hex, boolean isCheck) {
+        if (isUsbConnect)
+            mCH34xConnection.writeZigbeeMessage(message, hex, isCheck);
+        else
+            mSP.writeZigbeeMessage(message, hex, isCheck);
+    }
+
     private void doSpinnerItemSelecte() {
+
+        spDevNameSpinner.setSelection(1);
+        spDevNameSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                devName = parent.getItemAtPosition(position).toString();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+        spBaudRateSpinner.setSelection(4);
+        spBaudRateSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                baud = Integer.parseInt(parent.getItemAtPosition(position).toString());
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+        spDataBitsSpinner.setSelection(1);
+        spDataBitsSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                databits = Integer.parseInt(parent.getItemAtPosition(position).toString());
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+        spStopBitsSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                stopbits = Integer.parseInt(parent.getItemAtPosition(position).toString());
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
         baudRateSpinner.setSelection(4);
         baudRate = 9600;
         baudRateSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -402,7 +533,30 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        if (mSP != null)
+            mSP.release();
         if (mCH34xConnection != null)
             mCH34xConnection.release();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        super.onOptionsItemSelected(item);
+        if (item.getItemId() == R.id.usb_con) {
+            usbLl.setVisibility(View.VISIBLE);
+            spLl.setVisibility(View.GONE);
+            isUsbConnect = true;
+        } else if (item.getItemId() == R.id.sp_con) {
+            usbLl.setVisibility(View.GONE);
+            spLl.setVisibility(View.VISIBLE);
+            isUsbConnect = false;
+        }
+        return true;
     }
 }

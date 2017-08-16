@@ -1,5 +1,19 @@
 <resources>
     <string name="app_name">ZigbeeCT</string>
+    <string-array name="dev_name">
+        <item>/dev/ttyAMA1</item>
+        <item>/dev/ttyAMA2</item>
+        <item>/dev/ttyAMA3</item>
+        <item>/dev/ttyAMA4</item>
+        <item>/dev/ttySAC2</item>
+        <item>/dev/ttySAC3</item>
+        <item>/dev/ttySAC4</item>
+        <item>/dev/ttyUSB0</item>
+        <item>/dev/ttyUSB1</item>
+        <item>/dev/ttyUSB2</item>
+        <item>/dev/ttyUSB3</item>
+        <item>/dev/ttyUSB4</item>
+    </string-array>
     <string-array name="baud_rate">
         <item>300</item>
         <item>600</item>
